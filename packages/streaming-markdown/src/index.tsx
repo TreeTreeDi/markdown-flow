@@ -5,18 +5,22 @@ import remarkGfm from 'remark-gfm';
 import type { Components } from 'react-markdown';
 
 export interface StreamingMarkdownProps {
-  content: string;
+  children?: ReactNode;
   className?: string;
   components?: Partial<Components>;
   onComplete?: () => void;
 }
 
 export function StreamingMarkdown({
-  content,
+  children,
   className,
   components,
 }: StreamingMarkdownProps): ReactNode {
   const processedContent = useMemo(() => {
+    const content = typeof children === 'string' ? children : String(children || '');
+
+    console.log('Original content:123123', JSON.stringify(content));
+
     const trimmed = content.trim();
     
     if (trimmed.endsWith('```') && !trimmed.endsWith('```\n')) {
@@ -24,7 +28,7 @@ export function StreamingMarkdown({
     }
     
     return trimmed;
-  }, [content]);
+  }, [children]);
 
   return (
     <ReactMarkdown
