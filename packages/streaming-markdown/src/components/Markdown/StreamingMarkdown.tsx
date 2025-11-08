@@ -41,4 +41,3 @@ export function StreamingMarkdown({
   );
 }
 
-export { StreamingMarkdown as default };
