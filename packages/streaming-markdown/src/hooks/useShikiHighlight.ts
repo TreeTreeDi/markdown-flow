@@ -27,14 +27,29 @@ async function getHighlighter(): Promise<HighlighterCore> {
       langs: [
         import('shiki/langs/javascript.mjs'),
         import('shiki/langs/typescript.mjs'),
+        import('shiki/langs/tsx.mjs'),
+        import('shiki/langs/jsx.mjs'),
         import('shiki/langs/python.mjs'),
         import('shiki/langs/java.mjs'),
         import('shiki/langs/json.mjs'),
         import('shiki/langs/html.mjs'),
         import('shiki/langs/css.mjs'),
         import('shiki/langs/bash.mjs'),
+        import('shiki/langs/shell.mjs'),
         import('shiki/langs/sql.mjs'),
         import('shiki/langs/markdown.mjs'),
+        import('shiki/langs/go.mjs'),
+        import('shiki/langs/rust.mjs'),
+        import('shiki/langs/c.mjs'),
+        import('shiki/langs/cpp.mjs'),
+        import('shiki/langs/csharp.mjs'),
+        import('shiki/langs/php.mjs'),
+        import('shiki/langs/ruby.mjs'),
+        import('shiki/langs/swift.mjs'),
+        import('shiki/langs/kotlin.mjs'),
+        import('shiki/langs/yaml.mjs'),
+        import('shiki/langs/xml.mjs'),
+        import('shiki/langs/dockerfile.mjs'),
       ],
       engine: createJavaScriptRegexEngine(),
     });
@@ -63,18 +78,7 @@ export function useShikiHighlight({
 
         if (cancelled) return;
 
-        const loadedLanguages = highlighter.getLoadedLanguages();
         const normalizedLang = language.toLowerCase() as BundledLanguage;
-        
-        if (!loadedLanguages.includes(normalizedLang)) {
-          try {
-            await highlighter.loadLanguage(
-              import(`shiki/langs/${normalizedLang}.mjs`)
-            );
-          } catch {
-            console.warn(`Language ${normalizedLang} not supported, using plain text`);
-          }
-        }
 
         if (cancelled) return;
 
