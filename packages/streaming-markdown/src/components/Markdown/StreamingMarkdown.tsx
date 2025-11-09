@@ -100,7 +100,7 @@ export function StreamingMarkdown({
       remarkPlugins={[remarkGfm]}
       components={components}
     >
-      {markdown}
+      {displayedText}
     </ReactMarkdown>
   );
 }
