@@ -24,8 +24,8 @@ jobs:
       
       - run: pnpm install --frozen-lockfile
       
-      - run: pnpm --filter @stream-md/react build
+      - run: pnpm --filter streaming-markdown-react build
       
-      - run: pnpm --filter @stream-md/react publish --access public --no-git-checks
+      - run: pnpm --filter streaming-markdown-react publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

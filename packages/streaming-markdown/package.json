@@ -1,6 +1,6 @@
 {
-  "name": "@stream-md/react",
-  "version": "0.1.3",
+  "name": "streaming-markdown-react",
+  "version": "0.1.4",
   "description": "React component for rendering streaming markdown content",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
