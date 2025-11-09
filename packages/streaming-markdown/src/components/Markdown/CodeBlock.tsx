@@ -8,10 +8,8 @@ export interface CodeBlockProps {
 
 export function CodeBlock({ code, language, className }: CodeBlockProps): ReactNode {
   return (
-    <div className={className}>
-      <pre>
-        <code data-language={language}>{code}</code>
-      </pre>
-    </div>
+    <pre className={className}>
+      <code data-language={language}>{code}</code>
+    </pre>
   );
 }

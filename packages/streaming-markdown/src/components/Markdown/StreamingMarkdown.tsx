@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Components } from 'react-markdown';
 import { useSmoothStream } from '../../hooks/useSmoothStream';
+import { CodeBlock } from './CodeBlock';
 
 export type StreamingStatus = 'idle' | 'streaming' | 'success' | 'error';
 
@@ -14,15 +15,17 @@ export interface StreamingMarkdownProps {
   status?: StreamingStatus;
   onComplete?: () => void;
   minDelay?: number;
+  blockId?: string;
 }
 
 export function StreamingMarkdown({
   children,
   className,
-  components,
+  components: customComponents,
   status = 'idle',
   onComplete,
   minDelay = 10,
+  blockId,
 }: StreamingMarkdownProps): ReactNode {
   const markdown = typeof children === 'string' ? children : String(children || '');
   const [displayedText, setDisplayedText] = useState(status !== 'streaming' ? markdown : '');
@@ -53,14 +56,53 @@ export function StreamingMarkdown({
   }, [markdown, addChunk, reset]);
 
   const processedContent = useMemo(() => {
-    const trimmed = displayedText.trim();
+    if (!displayedText) return '';
 
-    if (trimmed.endsWith('```') && !trimmed.endsWith('```\n')) {
-      return `${trimmed}\n`;
+    if (displayedText.endsWith('```') && !displayedText.endsWith('```\n')) {
+      return `${displayedText}\n`;
     }
 
-    return trimmed;
+    return displayedText;
   }, [displayedText]);
+
+  const components = useMemo(() => {
+    const baseComponents = {
+      code: (props: any) => {
+        const { node, inline, className, children, ...rest } = props;
+        if (inline) {
+          return <code className={className} {...rest}>{children}</code>;
+        }
+        const match = /language-(\w+)/.exec(className || '');
+        const language = match ? match[1] : undefined;
+        const code = String(children).replace(/\n$/, '');
+        return <CodeBlock code={code} language={language} className={className} />;
+      },
+      pre: (props: any) => {
+        const { children, ...rest } = props;
+        if (children?.type === CodeBlock) {
+          return children;
+        }
+        return <pre style={{ overflow: 'visible' }} {...rest}>{children}</pre>;
+      },
+      p: (props: any) => {
+        const hasCodeBlock = props?.node?.children?.some(
+          (child: any) => child.tagName === 'pre' || child.tagName === 'code'
+        );
+        if (hasCodeBlock) {
+          return <>{props.children}</>;
+        }
+        const hasImage = props?.node?.children?.some((child: any) => child.tagName === 'img');
+        if (hasImage) return <div {...props} />;
+        return <p {...props} />;
+      },
+    } as Partial<Components>;
+
+    if (/<style\b[^>]*>/i.test(markdown)) {
+      (baseComponents as any).style = (props: any) => <div {...props} />;
+    }
+
+    return { ...baseComponents, ...customComponents };
+  }, [markdown, customComponents]);
 
   return (
     <ReactMarkdown
@@ -68,7 +110,7 @@ export function StreamingMarkdown({
       remarkPlugins={[remarkGfm]}
       components={components}
     >
-      {processedContent}
+      {markdown}
     </ReactMarkdown>
   );
 }
