@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
-import { useMemo } from 'react';
-import { nanoid } from 'nanoid';
+import { useId, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { messageBlockStore } from '../../store/messageBlocks';
@@ -34,7 +33,8 @@ export function MessageItem({
     );
   }
 
-  const messageIdRef = useMemo(() => messageId ?? nanoid(), [messageId]);
+  const generatedId = useId();
+  const messageIdRef = messageId ?? generatedId;
 
   const blocks = useMemo(() => {
     const allBlocks = messageBlockStore.selectAll();
