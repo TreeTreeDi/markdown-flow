@@ -24,19 +24,21 @@ export function StreamingMarkdown({
   onComplete,
   minDelay = 10,
 }: StreamingMarkdownProps): ReactNode {
-  const [displayedText, setDisplayedText] = useState('');
-  const previousChildrenRef = useRef<string>('');
+  const markdown = typeof children === 'string' ? children : String(children || '');
+  const [displayedText, setDisplayedText] = useState(status !== 'streaming' ? markdown : '');
+  const previousChildrenRef = useRef<string>(status !== 'streaming' ? markdown : '');
 
+  console.log('StreamingMarkdown children:', markdown);
   const { addChunk, reset } = useSmoothStream({
     onUpdate: setDisplayedText,
     streamDone: status !== 'streaming',
     minDelay,
-    initialText: '',
+    initialText: status !== 'streaming' ? markdown : '',
     onComplete,
   });
 
   useEffect(() => {
-    const currentContent = typeof children === 'string' ? children : String(children || '');
+    const currentContent = markdown;
     const previousContent = previousChildrenRef.current;
 
     if (currentContent !== previousContent) {
@@ -48,12 +50,11 @@ export function StreamingMarkdown({
       }
       previousChildrenRef.current = currentContent;
     }
-  }, [children, addChunk, reset]);
+  }, [markdown, addChunk, reset]);
 
   const processedContent = useMemo(() => {
     const trimmed = displayedText.trim();
 
-    console.log('Displayed content:456456', JSON.stringify(displayedText));
     if (trimmed.endsWith('```') && !trimmed.endsWith('```\n')) {
       return `${trimmed}\n`;
     }

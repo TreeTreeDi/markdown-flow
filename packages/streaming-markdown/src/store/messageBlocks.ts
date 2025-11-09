@@ -35,6 +35,10 @@ export class MessageBlockStore {
     this.blocks.clear();
   }
 
+  selectAll(): MessageBlock[] {
+    return Array.from(this.blocks.values());
+  }
+
   toJSON(): Record<string, MessageBlock> {
     return Object.fromEntries(this.blocks.entries());
   }

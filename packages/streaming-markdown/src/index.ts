@@ -32,8 +32,3 @@ export type { MessageItemProps } from './components/Message/MessageItem';
 
 export { useSmoothStream } from './hooks/useSmoothStream';
 export type { UseSmoothStreamOptions } from './hooks/useSmoothStream';
-
-export { splitMarkdownIntoBlocks } from './utils/markdown/splitMarkdownIntoBlocks';
-export type { SplitOptions } from './utils/markdown/splitMarkdownIntoBlocks';
-
-export { groupMessagesByRole, filterMessagesByStatus } from './utils/messages';
