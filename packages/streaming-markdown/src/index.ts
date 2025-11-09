@@ -32,3 +32,5 @@ export type { MessageItemProps } from './components/Message/MessageItem';
 
 export { useSmoothStream } from './hooks/useSmoothStream';
 export type { UseSmoothStreamOptions } from './hooks/useSmoothStream';
+
+export { useShikiHighlight } from './hooks/useShikiHighlight';

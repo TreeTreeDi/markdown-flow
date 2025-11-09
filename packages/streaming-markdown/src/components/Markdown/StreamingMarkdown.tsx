@@ -25,7 +25,6 @@ export function StreamingMarkdown({
   status = 'idle',
   onComplete,
   minDelay = 10,
-  blockId,
 }: StreamingMarkdownProps): ReactNode {
   const markdown = typeof children === 'string' ? children : String(children || '');
   const [displayedText, setDisplayedText] = useState(status !== 'streaming' ? markdown : '');
@@ -55,15 +54,6 @@ export function StreamingMarkdown({
     }
   }, [markdown, addChunk, reset]);
 
-  const processedContent = useMemo(() => {
-    if (!displayedText) return '';
-
-    if (displayedText.endsWith('```') && !displayedText.endsWith('```\n')) {
-      return `${displayedText}\n`;
-    }
-
-    return displayedText;
-  }, [displayedText]);
 
   const components = useMemo(() => {
     const baseComponents = {
