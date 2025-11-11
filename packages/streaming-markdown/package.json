@@ -21,7 +21,9 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:perf": "vitest run src/__tests__/performance",
+    "test:perf:watch": "vitest src/__tests__/performance"
   },
   "keywords": [
     "react",
