@@ -62,9 +62,6 @@ importers:
       '@radix-ui/react-visually-hidden':
         specifier: ^1.1.0
         version: 1.1.2(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
-      '@stream-md/react':
-        specifier: workspace:*
-        version: link:packages/streaming-markdown
       '@vercel/analytics':
         specifier: ^1.3.1
         version: 1.5.0(next@15.3.0-canary.31(@opentelemetry/api@1.9.0)(@playwright/test@1.51.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021)
@@ -206,6 +203,9 @@ importers:
       streamdown:
         specifier: ^1.3.0
         version: 1.4.0(@types/react@18.3.18)(react@19.0.0-rc-45804af1-20241021)
+      streaming-markdown-react:
+        specifier: workspace:*
+        version: link:packages/streaming-markdown
       swr:
         specifier: ^2.2.5
         version: 2.3.3(react@19.0.0-rc-45804af1-20241021)
@@ -282,6 +282,9 @@ importers:
 
   packages/streaming-markdown:
     dependencies:
+      marked:
+        specifier: ^17.0.0
+        version: 17.0.0
       nanoid:
         specifier: ^5.0.0
         version: 5.1.3
@@ -4414,6 +4417,11 @@ packages:
 
   marked@16.4.1:
     resolution: {integrity: sha512-ntROs7RaN3EvWfy3EZi14H4YxmT6A5YvywfhO+0pm+cH/dnSQRmdAmoFIc3B9aiwTehyk7pESH4ofyBY+V5hZg==}
+    engines: {node: '>= 20'}
+    hasBin: true
+
+  marked@17.0.0:
+    resolution: {integrity: sha512-KkDYEWEEiYJw/KC+DVm1zzlpMQSMIu6YRltkcCvwheCp8HWPXCk9JwOmHJKBlGfzcpzcIt6x3sMnTsRm/51oDg==}
     engines: {node: '>= 20'}
     hasBin: true
 
@@ -9869,6 +9877,8 @@ snapshots:
   markdown-table@3.0.4: {}
 
   marked@16.4.1: {}
+
+  marked@17.0.0: {}
 
   math-intrinsics@1.1.0: {}
 

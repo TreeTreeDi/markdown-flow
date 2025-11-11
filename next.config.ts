@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   experimental: {
     ppr: true,
   },
-  transpilePackages: ["@stream-md/react"],
+  transpilePackages: ["streaming-markdown-react"],
   images: {
     remotePatterns: [
       {

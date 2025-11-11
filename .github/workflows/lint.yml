@@ -22,4 +22,4 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Run streaming-markdown lint
-        run: pnpm --filter @stream-md/react lint
+        run: pnpm --filter streaming-markdown-react lint

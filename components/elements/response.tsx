@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { MessageItem, type MessageItemProps } from "@stream-md/react";
+import { MessageItem, type MessageItemProps } from "streaming-markdown-react";
 import { cn } from "@/lib/utils";
 
 type ResponseProps = MessageItemProps;
