@@ -122,6 +122,16 @@ export function LiveAssistantMessage({ stream }: { stream: ReadableStream<string
 | `isLanguageSupported` | Check if a language is supported by the registry. |
 | `getSupportedLanguages` | List all supported programming languages. |
 
+### SQL Extraction Utilities
+
+| Export | Description |
+| --- | --- |
+| `extractSqlBlocksFromMarkdown` | Extract SQL code blocks from Markdown text with role metadata. |
+| `collectSqlBlocks` | Collect SQL blocks from a parsed remark AST (for advanced users). |
+| `parseSqlMeta` | Parse SQL metastring (e.g., `{ role=final executable=true }`). |
+| `remarkSqlMarker` | Remark plugin that injects SQL metadata into AST `data` fields. |
+| `SqlBlock` | TypeScript type for SQL block data structure. |
+
 ## StreamingMarkdown Props
 
 | Prop | Type | Description |
@@ -240,6 +250,159 @@ const assistant: Message = {
     },
   ],
 };
+```
+
+## SQL Code Block Extraction
+
+Extract structured SQL blocks from Markdown text with role-based metadata. Useful for AI-generated SQL responses where you need to identify and execute the "final" query.
+
+### Marker Protocol
+
+Mark SQL blocks with **metastring** to specify roles and execution attributes:
+
+````md
+```sql { role=final executable=true }
+select * from users where status='active';
+```
+````
+
+**Supported Parameters**:
+- `role`: SQL block role
+  - `final` - Final executable SQL (auto `executable=true`)
+  - `intermediate` - Intermediate analysis SQL
+  - `init` - Initialization script
+  - Custom role strings
+- `executable`: `true` | `false` (default `false`, auto `true` when `role=final`)
+
+**Supported SQL Dialects**:
+`sql`, `pgsql`, `mysql`, `sqlite`, `tsql`, `plsql`
+
+### API
+
+#### `extractSqlBlocksFromMarkdown(source: string): SqlBlock[]`
+
+Extract all SQL code blocks from Markdown text.
+
+**Example**:
+```typescript
+import { extractSqlBlocksFromMarkdown } from 'streaming-markdown-react';
+
+const markdown = `
+Analysis result:
+
+\`\`\`sql { role=intermediate }
+select count(*) from users;
+\`\`\`
+
+Final query:
+
+\`\`\`sql { role=final }
+select * from users where status='active' limit 10;
+\`\`\`
+`;
+
+const blocks = extractSqlBlocksFromMarkdown(markdown);
+console.log(blocks);
+// [
+//   {
+//     blockId: 'sql-4-1',
+//     content: 'select count(*) from users;',
+//     isExecutable: false,
+//     role: 'intermediate',
+//     lang: 'sql',
+//     startLine: 4,
+//     endLine: 6
+//   },
+//   {
+//     blockId: 'sql-10-2',
+//     content: "select * from users where status='active' limit 10;",
+//     isExecutable: true,
+//     role: 'final',
+//     lang: 'sql',
+//     startLine: 10,
+//     endLine: 12
+//   }
+// ]
+
+// Auto-select "final executable SQL"
+const finalSql = blocks.find(b => b.role === 'final' && b.isExecutable);
+if (finalSql) {
+  executeSQL(finalSql.content);
+}
+```
+
+### `SqlBlock` Type
+
+```typescript
+interface SqlBlock {
+  blockId: string;        // Unique identifier (generated from line number)
+  content: string;        // SQL code content
+  isExecutable: boolean;  // Whether it's executable (auto true for role=final)
+  role?: string;          // Role marker (final/intermediate/init/custom)
+  startLine?: number;     // Starting line number
+  endLine?: number;       // Ending line number
+  lang: string;           // SQL dialect (sql/pgsql/mysql/etc.)
+}
+```
+
+### Use Cases
+
+#### 1. Auto-execute Final SQL
+```typescript
+const blocks = extractSqlBlocksFromMarkdown(aiResponse);
+const finalSql = blocks.find(b => b.role === 'final');
+if (finalSql) {
+  await db.execute(finalSql.content);
+}
+```
+
+#### 2. Fill Editor
+```typescript
+const blocks = extractSqlBlocksFromMarkdown(aiResponse);
+const executableBlocks = blocks.filter(b => b.isExecutable);
+if (executableBlocks.length > 0) {
+  editor.setValue(executableBlocks[0].content);
+}
+```
+
+#### 3. SQL Diff Comparison
+```typescript
+const blocks = extractSqlBlocksFromMarkdown(aiResponse);
+const original = blocks.find(b => b.role === 'original');
+const optimized = blocks.find(b => b.role === 'optimized');
+if (original && optimized) {
+  showDiff(original.content, optimized.content);
+}
+```
+
+#### 4. Multi-dialect Handling
+```typescript
+const blocks = extractSqlBlocksFromMarkdown(aiResponse);
+for (const block of blocks) {
+  if (block.lang === 'pgsql') {
+    await postgresClient.execute(block.content);
+  } else if (block.lang === 'mysql') {
+    await mysqlClient.execute(block.content);
+  }
+}
+```
+
+### Advanced: Using the Remark Plugin
+
+For custom Markdown processing pipelines:
+
+```typescript
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import { remarkSqlMarker, collectSqlBlocks } from 'streaming-markdown-react';
+
+const processor = unified()
+  .use(remarkParse)
+  .use(remarkSqlMarker);  // Injects data.sql into AST nodes
+
+const ast = processor.parse(markdown);
+const transformed = processor.runSync(ast);
+const blocks = collectSqlBlocks(transformed);
 ```
 
 ## License

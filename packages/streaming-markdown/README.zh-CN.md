@@ -122,6 +122,16 @@ export function LiveAssistantMessage({ stream }: { stream: ReadableStream<string
 | `isLanguageSupported` | 检查是否支持指定语言。 |
 | `getSupportedLanguages` | 列出所有支持的编程语言。 |
 
+### SQL 提取工具函数
+
+| 导出项 | 说明 |
+| --- | --- |
+| `extractSqlBlocksFromMarkdown` | 从 Markdown 文本中提取带角色元数据的 SQL 代码块。 |
+| `collectSqlBlocks` | 从解析后的 remark AST 收集 SQL 块（高级用户）。 |
+| `parseSqlMeta` | 解析 SQL metastring（如 `{ role=final executable=true }`）。 |
+| `remarkSqlMarker` | Remark 插件，将 SQL 元数据注入 AST `data` 字段。 |
+| `SqlBlock` | SQL 块数据结构的 TypeScript 类型。 |
+
 ## StreamingMarkdown 参数
 
 | 参数 | 类型 | 说明 |
@@ -220,6 +230,159 @@ const assistant: Message = {
     },
   ],
 };
+```
+
+## SQL 代码块提取
+
+从 Markdown 文本中提取结构化的 SQL 代码块，并附带基于角色的元数据。适用于 AI 生成 SQL 响应的场景，可自动识别并执行"最终"查询。
+
+### 标记协议
+
+使用 **metastring** 标记 SQL 块，指定角色和执行属性：
+
+````md
+```sql { role=final executable=true }
+select * from users where status='active';
+```
+````
+
+**支持的参数**：
+- `role`: SQL 块角色
+  - `final` - 最终可执行 SQL（自动设为 `executable=true`）
+  - `intermediate` - 中间分析 SQL
+  - `init` - 初始化脚本
+  - 自定义角色字符串
+- `executable`: `true` | `false`（默认 `false`，当 `role=final` 时自动为 `true`）
+
+**支持的 SQL 方言**：
+`sql`、`pgsql`、`mysql`、`sqlite`、`tsql`、`plsql`
+
+### API
+
+#### `extractSqlBlocksFromMarkdown(source: string): SqlBlock[]`
+
+从 Markdown 文本中提取所有 SQL 代码块。
+
+**示例**：
+```typescript
+import { extractSqlBlocksFromMarkdown } from 'streaming-markdown-react';
+
+const markdown = `
+分析结果：
+
+\`\`\`sql { role=intermediate }
+select count(*) from users;
+\`\`\`
+
+最终查询：
+
+\`\`\`sql { role=final }
+select * from users where status='active' limit 10;
+\`\`\`
+`;
+
+const blocks = extractSqlBlocksFromMarkdown(markdown);
+console.log(blocks);
+// [
+//   {
+//     blockId: 'sql-4-1',
+//     content: 'select count(*) from users;',
+//     isExecutable: false,
+//     role: 'intermediate',
+//     lang: 'sql',
+//     startLine: 4,
+//     endLine: 6
+//   },
+//   {
+//     blockId: 'sql-10-2',
+//     content: "select * from users where status='active' limit 10;",
+//     isExecutable: true,
+//     role: 'final',
+//     lang: 'sql',
+//     startLine: 10,
+//     endLine: 12
+//   }
+// ]
+
+// 自动选取"最终可执行 SQL"
+const finalSql = blocks.find(b => b.role === 'final' && b.isExecutable);
+if (finalSql) {
+  executeSQL(finalSql.content);
+}
+```
+
+### `SqlBlock` 类型
+
+```typescript
+interface SqlBlock {
+  blockId: string;        // 唯一标识（基于行号生成）
+  content: string;        // SQL 代码内容
+  isExecutable: boolean;  // 是否可执行（role=final 时自动为 true）
+  role?: string;          // 角色标记（final/intermediate/init/自定义）
+  startLine?: number;     // 起始行号
+  endLine?: number;       // 结束行号
+  lang: string;           // SQL 方言（sql/pgsql/mysql等）
+}
+```
+
+### 使用场景
+
+#### 1. 自动执行最终 SQL
+```typescript
+const blocks = extractSqlBlocksFromMarkdown(aiResponse);
+const finalSql = blocks.find(b => b.role === 'final');
+if (finalSql) {
+  await db.execute(finalSql.content);
+}
+```
+
+#### 2. 填充到编辑器
+```typescript
+const blocks = extractSqlBlocksFromMarkdown(aiResponse);
+const executableBlocks = blocks.filter(b => b.isExecutable);
+if (executableBlocks.length > 0) {
+  editor.setValue(executableBlocks[0].content);
+}
+```
+
+#### 3. SQL 差异对比
+```typescript
+const blocks = extractSqlBlocksFromMarkdown(aiResponse);
+const original = blocks.find(b => b.role === 'original');
+const optimized = blocks.find(b => b.role === 'optimized');
+if (original && optimized) {
+  showDiff(original.content, optimized.content);
+}
+```
+
+#### 4. 多方言处理
+```typescript
+const blocks = extractSqlBlocksFromMarkdown(aiResponse);
+for (const block of blocks) {
+  if (block.lang === 'pgsql') {
+    await postgresClient.execute(block.content);
+  } else if (block.lang === 'mysql') {
+    await mysqlClient.execute(block.content);
+  }
+}
+```
+
+### 高级用法：使用 Remark 插件
+
+适用于自定义 Markdown 处理流程：
+
+```typescript
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import { remarkSqlMarker, collectSqlBlocks } from 'streaming-markdown-react';
+
+const processor = unified()
+  .use(remarkParse)
+  .use(remarkSqlMarker);  // 将 data.sql 注入 AST 节点
+
+const ast = processor.parse(markdown);
+const transformed = processor.runSync(ast);
+const blocks = collectSqlBlocks(transformed);
 ```
 
 ## 许可协议

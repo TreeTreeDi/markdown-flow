@@ -80,3 +80,9 @@ export {
   MemoImage,
   MemoDelete,
 } from './components/Markdown/MemoizedComponents';
+
+// SQL 相关导出
+export { extractSqlBlocksFromMarkdown, collectSqlBlocks } from './utils/sql/extractSqlBlocks';
+export { parseSqlMeta } from './utils/sql/parseSqlMeta';
+export { remarkSqlMarker } from './plugins/remarkSqlMarker';
+export type { SqlBlock, SqlData, SqlCodeNode } from './types/sqlBlock';
